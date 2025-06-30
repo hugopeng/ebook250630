@@ -74,6 +74,17 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
       state = AsyncValue.error(error, stackTrace);
     }
   }
+
+  Future<void> refreshUser() async {
+    state = const AsyncValue.loading();
+    try {
+      // Refresh user profile data
+      await AuthService.instance.getCurrentUserProfile();
+      state = const AsyncValue.data(null);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
 }
 
 final authNotifierProvider = StateNotifierProvider<AuthNotifier, AsyncValue<void>>((ref) {

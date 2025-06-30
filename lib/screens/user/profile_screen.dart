@@ -41,12 +41,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    final authState = ref.read(authNotifierProvider);
-    if (authState.user != null) {
-      _usernameController.text = authState.user!.username ?? '';
-      _emailController.text = authState.user!.email;
-      _currentAvatarUrl = authState.user!.avatarUrl;
-    }
+    final userProfile = ref.read(userProfileProvider);
+    userProfile.whenData((user) {
+      if (user != null) {
+        _usernameController.text = user.username ?? '';
+        _emailController.text = user.email;
+        _currentAvatarUrl = user.avatarUrl;
+      }
+    });
   }
 
   Future<void> _loadReadingStats() async {
@@ -92,7 +94,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         await supabase.avatars.uploadBinary(
           fileName,
           bytes,
-          fileOptions: const FileOptions(upsert: true),
+          fileOptions: const FileOptions(
+            cacheControl: '3600',
+            upsert: true,
+          ),
         );
         
         avatarUrl = supabase.getPublicUrl(supabase.avatarsBucket, fileName);
@@ -234,7 +239,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             radius: 60,
             backgroundColor: AppConstants.primaryColor.withOpacity(0.1),
             backgroundImage: _selectedAvatar != null
-                ? FileImage(_selectedAvatar!)
+                ? FileImage(_selectedAvatar!) as ImageProvider
                 : _currentAvatarUrl != null
                     ? NetworkImage(_currentAvatarUrl!)
                     : null,

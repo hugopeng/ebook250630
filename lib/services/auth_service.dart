@@ -218,7 +218,7 @@ class AuthService {
 
   Future<int> getUsersCount({String? search, String? status}) async {
     try {
-      var query = _supabase.users.select('id', const FetchOptions(count: CountOption.exact));
+      var query = _supabase.users.select('id');
 
       if (search != null && search.isNotEmpty) {
         query = query.or('username.ilike.%$search%,email.ilike.%$search%');

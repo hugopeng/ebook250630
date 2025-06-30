@@ -88,7 +88,7 @@ class BookService {
     bool adminView = false,
   }) async {
     try {
-      var query = _supabase.books.select('id', const FetchOptions(count: CountOption.exact));
+      var query = _supabase.books.select('id');
 
       if (!adminView) {
         query = query.eq('is_published', true);
@@ -296,7 +296,7 @@ class BookService {
   // Increment view count
   Future<void> incrementViewCount(String bookId) async {
     try {
-      await _supabase.books.rpc('increment_view_count', params: {'book_id': bookId});
+      await _supabase.client.rpc('increment_view_count', params: {'book_id': bookId});
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error incrementing view count: $e');
