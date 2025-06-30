@@ -1,8 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'rating.g.dart';
-
-@JsonSerializable()
 class Rating {
   final String id;
   final String bookId;
@@ -19,11 +14,34 @@ class Rating {
     required this.rating,
     this.review,
     required this.createdAt,
-    required this.updatedAt,
+    this.updatedAt,
   });
 
-  factory Rating.fromJson(Map<String, dynamic> json) => _$RatingFromJson(json);
-  Map<String, dynamic> toJson() => _$RatingToJson(this);
+  factory Rating.fromJson(Map<String, dynamic> json) {
+    return Rating(
+      id: json['id'] as String,
+      bookId: json['book_id'] as String,
+      userId: json['user_id'] as String,
+      rating: json['rating'] as int,
+      review: json['review'] as String?,
+      createdAt: DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at'] as String)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'book_id': bookId,
+      'user_id': userId,
+      'rating': rating,
+      'review': review,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
 
   Rating copyWith({
     String? id,

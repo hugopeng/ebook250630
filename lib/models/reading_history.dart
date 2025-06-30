@@ -1,8 +1,3 @@
-import 'package:json_annotation/json_annotation.dart';
-
-part 'reading_history.g.dart';
-
-@JsonSerializable()
 class ReadingHistory {
   final String id;
   final String bookId;
@@ -22,10 +17,29 @@ class ReadingHistory {
     required this.readingTimeMinutes,
   });
 
-  factory ReadingHistory.fromJson(Map<String, dynamic> json) => 
-      _$ReadingHistoryFromJson(json);
-  
-  Map<String, dynamic> toJson() => _$ReadingHistoryToJson(this);
+  factory ReadingHistory.fromJson(Map<String, dynamic> json) {
+    return ReadingHistory(
+      id: json['id'] as String,
+      bookId: json['book_id'] as String,
+      userId: json['user_id'] as String,
+      currentPage: json['current_page'] as int? ?? 0,
+      progress: (json['progress'] as num?)?.toDouble() ?? 0.0,
+      lastReadAt: DateTime.parse(json['last_read_at'] as String),
+      readingTimeMinutes: json['reading_time_minutes'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'book_id': bookId,
+      'user_id': userId,
+      'current_page': currentPage,
+      'progress': progress,
+      'last_read_at': lastReadAt.toIso8601String(),
+      'reading_time_minutes': readingTimeMinutes,
+    };
+  }
 
   ReadingHistory copyWith({
     String? id,
