@@ -1,0 +1,18 @@
+{
+  "builds": [
+    {
+      "src": "build/web/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "ENVIRONMENT": "production",
+    "VERCEL_ENV": "production"
+  }
+}
