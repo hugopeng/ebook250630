@@ -319,7 +319,7 @@ class _UsersManagementScreenState extends ConsumerState<UsersManagementScreen> {
                 child: _StatCard(
                   title: '啟用用戶',
                   value: '$activeUsers',
-                  icon: Icons.person_check,
+                  icon: Icons.person_pin,
                   color: Colors.green,
                 ),
               ),

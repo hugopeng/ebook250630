@@ -39,7 +39,7 @@ class MyApp extends ConsumerWidget {
         ),
         
         // Card Theme
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 2,
           shadowColor: Colors.black26,
           shape: RoundedRectangleBorder(
