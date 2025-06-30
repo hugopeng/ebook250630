@@ -20,7 +20,7 @@ class AuthService {
   Future<AuthResponse> signInWithGoogle() async {
     try {
       final response = await _supabase.client.auth.signInWithOAuth(
-        Provider.google,
+        OAuthProvider.google,
         redirectTo: kIsWeb ? null : 'io.supabase.ebook250630://login-callback/',
       );
       

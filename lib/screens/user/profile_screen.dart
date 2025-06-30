@@ -45,7 +45,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     userProfile.whenData((user) {
       if (user != null) {
         _usernameController.text = user.username ?? '';
-        _emailController.text = user.email;
+        _emailController.text = user.email ?? '';
         _currentAvatarUrl = user.avatarUrl;
       }
     });
@@ -94,10 +94,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         await supabase.avatars.uploadBinary(
           fileName,
           bytes,
-          fileOptions: const FileOptions(
-            cacheControl: '3600',
-            upsert: true,
-          ),
         );
         
         avatarUrl = supabase.getPublicUrl(supabase.avatarsBucket, fileName);
