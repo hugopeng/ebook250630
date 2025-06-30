@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'services/environment_service.dart';
 
 // 簡化版本的模型類別 (不依賴 code generation)
@@ -38,20 +39,50 @@ class SimpleBook {
 
   factory SimpleBook.fromJson(Map<String, dynamic> json) {
     return SimpleBook(
-      id: json['id'],
-      title: json['title'],
-      author: json['author'],
-      description: json['description'],
-      coverUrl: json['cover_url'],
-      fileUrl: json['file_url'],
-      filePath: json['file_path'],
-      fileType: json['file_type'],
-      category: json['category'],
-      isPublished: json['is_published'] ?? false,
-      averageRating: json['average_rating']?.toDouble(),
-      totalRatings: json['total_ratings'] ?? 0,
-      createdAt: DateTime.parse(json['created_at']),
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      author: json['author']?.toString() ?? '',
+      description: json['description']?.toString(),
+      coverUrl: json['cover_url']?.toString(),
+      fileUrl: json['file_url']?.toString(),
+      filePath: json['file_path']?.toString() ?? '',
+      fileType: json['file_type']?.toString() ?? '',
+      category: json['category']?.toString(),
+      isPublished: json['is_published'] == true,
+      averageRating: _parseDouble(json['average_rating']),
+      totalRatings: _parseInt(json['total_ratings']) ?? 0,
+      createdAt: _parseDateTime(json['created_at']) ?? DateTime.now(),
     );
+  }
+
+  // 輔助解析方法
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  static int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 
   String get fileTypeDisplay {
@@ -163,18 +194,44 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         error = null;
       });
 
+      print('🔍 嘗試從資料表載入書籍: ${envService.booksTable}');
+
       final response = await supabase
           .from(envService.booksTable)
           .select()
           .order('created_at', ascending: false)
           .limit(10);
 
+      print('📊 收到資料: ${response.length} 筆記錄');
+      if (response.isNotEmpty) {
+        print('📝 第一筆資料結構: ${response.first}');
+      }
+
       books = (response as List)
-          .map((json) => SimpleBook.fromJson(json))
+          .map((json) {
+            try {
+              return SimpleBook.fromJson(json);
+            } catch (parseError) {
+              print('❌ 解析書籍資料時發生錯誤: $parseError');
+              print('📄 原始資料: $json');
+              rethrow;
+            }
+          })
           .toList();
 
-    } catch (e) {
-      error = '載入書籍失敗: $e';
+      print('✅ 成功載入 ${books.length} 本書籍');
+
+    } catch (e, stackTrace) {
+      print('❌ 載入書籍失敗: $e');
+      print('📍 Stack trace: $stackTrace');
+      
+      if (e.toString().contains('relation') && e.toString().contains('does not exist')) {
+        error = '資料表 "${envService.booksTable}" 不存在\n請確認 Supabase 中已建立對應的資料表';
+      } else if (e.toString().contains('TypeError')) {
+        error = '資料格式錯誤: $e\n可能是資料庫欄位類型與程式期待不符';
+      } else {
+        error = '載入書籍失敗: $e';
+      }
     } finally {
       setState(() {
         isLoading = false;
@@ -378,13 +435,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   child: ListTile(
-                                    leading: CircleAvatar(
-                                      backgroundColor: const Color(0xFF2563EB),
-                                      child: Icon(
-                                        _getFileTypeIcon(book.fileType),
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                                    leading: _buildBookCover(book),
                                     title: Text(book.title),
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,16 +454,28 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                                           ),
                                       ],
                                     ),
-                                    trailing: Icon(
-                                      book.isPublished 
-                                          ? Icons.check_circle 
-                                          : Icons.schedule,
-                                      color: book.isPublished 
-                                          ? Colors.green 
-                                          : Colors.orange,
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (book.fileType.toLowerCase() == 'url')
+                                          const Icon(
+                                            Icons.open_in_new,
+                                            color: Colors.blue,
+                                            size: 20,
+                                          ),
+                                        const SizedBox(width: 8),
+                                        Icon(
+                                          book.isPublished 
+                                              ? Icons.check_circle 
+                                              : Icons.schedule,
+                                          color: book.isPublished 
+                                              ? Colors.green 
+                                              : Colors.orange,
+                                        ),
+                                      ],
                                     ),
                                     onTap: () {
-                                      _showBookDetails(book);
+                                      _handleBookTap(book);
                                     },
                                   ),
                                 );
@@ -431,6 +494,98 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Widget _buildBookCover(SimpleBook book) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFF2563EB),
+      ),
+      child: book.coverUrl != null && book.coverUrl!.isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                book.coverUrl!,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Icon(
+                    _getFileTypeIcon(book.fileType),
+                    color: Colors.white,
+                    size: 24,
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            )
+          : Icon(
+              _getFileTypeIcon(book.fileType),
+              color: Colors.white,
+              size: 24,
+            ),
+    );
+  }
+
+  Future<void> _handleBookTap(SimpleBook book) async {
+    if (book.fileType.toLowerCase() == 'url') {
+      await _openBookUrl(book);
+    } else {
+      _showBookDetails(book);
+    }
+  }
+
+  Future<void> _openBookUrl(SimpleBook book) async {
+    String? urlToOpen;
+    
+    // 優先使用 fileUrl，如果沒有則使用 filePath
+    if (book.fileUrl != null && book.fileUrl!.isNotEmpty) {
+      urlToOpen = book.fileUrl;
+    } else if (book.filePath.isNotEmpty) {
+      urlToOpen = book.filePath;
+    }
+    
+    if (urlToOpen == null || urlToOpen.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('書籍連結不存在')),
+      );
+      return;
+    }
+    
+    try {
+      final Uri uri = Uri.parse(urlToOpen);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault, // 在同一個瀏覽器TAB中開啟
+        );
+      } else {
+        throw Exception('無法開啟連結: $urlToOpen');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('開啟連結失敗: $e')),
+      );
+    }
   }
 
   IconData _getFileTypeIcon(String fileType) {
@@ -476,6 +631,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           ],
         ),
         actions: [
+          if (book.fileType.toLowerCase() == 'url')
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _openBookUrl(book);
+              },
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('開啟連結'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                foregroundColor: Colors.white,
+              ),
+            ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('關閉'),

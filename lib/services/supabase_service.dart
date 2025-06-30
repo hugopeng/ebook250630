@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'environment_service.dart';
 
 class SupabaseService {
   static SupabaseService? _instance;
@@ -10,36 +11,38 @@ class SupabaseService {
 
   late final SupabaseClient _client;
   SupabaseClient get client => _client;
+  
+  // 使用 EnvironmentService 來管理環境配置
+  final EnvironmentService _envService = EnvironmentService.instance;
 
-  // Environment-based table names
-  String get environment => dotenv.env['ENVIRONMENT'] ?? 'development';
-  bool get isDevelopment => environment == 'development';
+  // Environment information
+  bool get isDevelopment => _envService.isDevelopment;
+  bool get isProduction => _envService.isProduction;
+  String get environmentName => _envService.environmentName;
 
-  // Table names with environment prefix
-  String get usersTable => isDevelopment ? 'users_dev' : 'users';
-  String get booksTable => isDevelopment ? 'books_dev' : 'books';
-  String get ratingsTable => isDevelopment ? 'ratings_dev' : 'ratings';
-  String get readingHistoryTable => isDevelopment ? 'reading_history_dev' : 'reading_history';
+  // Table names (正確的命名規則)
+  String get usersTable => _envService.usersTable;
+  String get booksTable => _envService.booksTable;
+  String get ratingsTable => _envService.ratingsTable;
+  String get readingHistoryTable => _envService.readingHistoryTable;
 
-  // Storage bucket names with environment suffix
-  String get bookFilesBucket => isDevelopment ? 'book-files-dev' : 'book-files';
-  String get bookCoversBucket => isDevelopment ? 'book-covers-dev' : 'book-covers';
-  String get avatarsBucket => isDevelopment ? 'avatars-dev' : 'avatars';
+  // Storage bucket names (正確的命名規則)
+  String get coversBucket => _envService.coversBucket;
+  String get avatarsBucket => _envService.avatarsBucket;
+  String get filesBucket => _envService.filesBucket;
 
   Future<void> initialize() async {
     try {
       await dotenv.load(fileName: '.env');
       
-      final supabaseUrl = dotenv.env['SUPABASE_URL'];
-      final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
-
-      if (supabaseUrl == null || supabaseAnonKey == null) {
-        throw Exception('Missing Supabase configuration in .env file');
+      // 驗證環境配置
+      if (!_envService.validateConfiguration()) {
+        throw Exception('環境配置驗證失敗');
       }
 
       await Supabase.initialize(
-        url: supabaseUrl,
-        anonKey: supabaseAnonKey,
+        url: _envService.apiUrl,
+        anonKey: _envService.anonKey,
         authOptions: const FlutterAuthClientOptions(
           authFlowType: AuthFlowType.pkce,
         ),
@@ -55,9 +58,9 @@ class SupabaseService {
 
       if (kDebugMode) {
         print('✅ Supabase initialized successfully');
-        print('🌍 Environment: $environment');
+        print('🌍 Environment: $environmentName');
         print('📊 Tables: $usersTable, $booksTable, $ratingsTable, $readingHistoryTable');
-        print('🗂️ Buckets: $bookFilesBucket, $bookCoversBucket, $avatarsBucket');
+        print('🗂️ Buckets: $coversBucket, $avatarsBucket, $filesBucket');
       }
     } catch (e) {
       if (kDebugMode) {
@@ -80,8 +83,8 @@ class SupabaseService {
 
   // Storage shortcuts
   SupabaseStorageClient get storage => _client.storage;
-  StorageFileApi get bookFiles => storage.from(bookFilesBucket);
-  StorageFileApi get bookCovers => storage.from(bookCoversBucket);
+  StorageFileApi get bookFiles => storage.from(filesBucket);
+  StorageFileApi get bookCovers => storage.from(coversBucket);
   StorageFileApi get avatars => storage.from(avatarsBucket);
 
   // Helper methods for common operations
@@ -115,7 +118,7 @@ class SupabaseService {
 
   String? getCoverUrl(String? coverPath) {
     if (coverPath == null || coverPath.isEmpty) return null;
-    return getPublicUrl(bookCoversBucket, coverPath);
+    return getPublicUrl(coversBucket, coverPath);
   }
 
   String? getAvatarUrl(String? avatarPath) {
