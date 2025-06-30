@@ -219,18 +219,18 @@ class ReadingHistoryService {
 
       // 獲取閱讀書籍數量
       final booksResponse = await _supabase.readingHistory
-          .select('book_id', const FetchOptions(count: CountOption.exact))
+          .select('book_id')
           .eq('user_id', userId);
 
-      final totalBooks = booksResponse.count ?? 0;
+      final totalBooks = booksResponse.length;
 
       // 獲取完成的書籍數量（進度 >= 95%）
       final completedResponse = await _supabase.readingHistory
-          .select('id', const FetchOptions(count: CountOption.exact))
+          .select('id')
           .eq('user_id', userId)
           .gte('progress', 0.95);
 
-      final completedBooks = completedResponse.count ?? 0;
+      final completedBooks = completedResponse.length;
 
       // 獲取平均閱讀進度
       final progressResponse = await _supabase.readingHistory

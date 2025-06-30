@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../providers/book_provider.dart';
 import '../../router.dart';
 

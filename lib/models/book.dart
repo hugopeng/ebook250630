@@ -18,7 +18,7 @@ class Book {
   final int viewCount;
   final String? uploaderId;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
 
   const Book({
     required this.id,

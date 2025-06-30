@@ -5,7 +5,7 @@ class Rating {
   final int rating;
   final String? review;
   final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? updatedAt;
 
   const Rating({
     required this.id,

@@ -4,6 +4,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'services/environment_service.dart';
+import 'screens/search/search_screen.dart';
+import 'screens/user/profile_screen.dart';
 
 // 簡化版本的模型類別 (不依賴 code generation)
 class SimpleBook {
@@ -271,13 +273,33 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         backgroundColor: const Color(0xFF2563EB),
         foregroundColor: Colors.white,
         actions: [
-          if (currentUser != null)
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchScreen()),
+              );
+            },
+            icon: const Icon(Icons.search),
+            tooltip: '搜尋',
+          ),
+          if (currentUser != null) ...[
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                );
+              },
+              icon: const Icon(Icons.person),
+              tooltip: '個人資料',
+            ),
             IconButton(
               onPressed: _signOut,
               icon: const Icon(Icons.logout),
               tooltip: '登出',
-            )
-          else
+            ),
+          ] else
             IconButton(
               onPressed: _signInWithGoogle,
               icon: const Icon(Icons.login),

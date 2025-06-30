@@ -12,6 +12,8 @@ import 'screens/admin/add_book_screen.dart';
 import 'screens/admin/edit_book_screen.dart';
 import 'screens/admin/users_management_screen.dart';
 import 'screens/user/user_dashboard_screen.dart';
+import 'screens/user/profile_screen.dart';
+import 'screens/search/search_screen.dart';
 import 'widgets/responsive/scaffold_with_nav.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -89,6 +91,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dashboard',
             builder: (context, state) => const UserDashboardScreen(),
+          ),
+          
+          // Search
+          GoRoute(
+            path: '/search',
+            builder: (context, state) => const SearchScreen(),
+          ),
+          
+          // User Profile
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfileScreen(),
           ),
         ],
       ),
@@ -174,6 +188,8 @@ class Routes {
   static const books = '/books';
   static const bookDetail = '/books/:id';
   static const userDashboard = '/dashboard';
+  static const search = '/search';
+  static const profile = '/profile';
   
   // Admin Routes
   static const adminDashboard = '/admin';

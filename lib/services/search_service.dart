@@ -17,18 +17,18 @@ class SearchService {
       }
 
       // 分類篩選
-      if (filters.category != null) {
-        query = query.eq('category', filters.category);
+      if (filters.category != null && filters.category!.isNotEmpty) {
+        query = query.eq('category', filters.category!);
       }
 
       // 檔案類型篩選
-      if (filters.fileType != null) {
-        query = query.eq('file_type', filters.fileType);
+      if (filters.fileType != null && filters.fileType!.isNotEmpty) {
+        query = query.eq('file_type', filters.fileType!);
       }
 
       // 評分篩選
       if (filters.minRating != null) {
-        query = query.gte('average_rating', filters.minRating);
+        query = query.gte('average_rating', filters.minRating!);
       }
 
       // 只顯示已發布的書籍
