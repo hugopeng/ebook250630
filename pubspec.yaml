@@ -1,0 +1,86 @@
+name: ebook250630
+description: "SoR書庫是一個基於 Flutter + Supabase 的現代化電子書閱讀平台，提供優質的跨平台在線閱讀體驗。"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Supabase & Backend
+  supabase_flutter: ^2.3.4
+  
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Navigation
+  go_router: ^15.2.4
+  
+  # UI & Responsive
+  responsive_framework: ^1.1.1
+  data_table_2: ^2.5.11
+  flutter_staggered_grid_view: ^0.7.0
+  
+  # File Handling
+  file_picker: ^10.2.0
+  image_picker: ^1.0.4
+  path_provider: ^2.1.1
+  mime: ^2.0.0
+  
+  # Environment & Utils
+  flutter_dotenv: ^5.1.0
+  uuid: ^4.2.1
+  intl: ^0.20.2
+  
+  # Icons & Fonts
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.9
+  
+  # HTTP & Networking
+  http: ^1.1.2
+  
+  # Authentication (using Supabase Auth with Google provider)
+  # google_sign_in: ^6.1.6  # Not needed, using Supabase Auth
+  
+  # Storage & Cache
+  shared_preferences: ^2.2.2
+  cached_network_image: ^3.3.0
+  
+  # UI Enhancements
+  shimmer: ^3.0.0
+  lottie: ^3.3.1
+  
+  # Form Validation
+  flutter_form_builder: ^10.0.1
+  form_builder_validators: ^11.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  
+  # Code Generation
+  riverpod_generator: ^2.3.9
+  build_runner: ^2.4.7
+  json_annotation: ^4.8.1
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
+    - .env
+
+  # fonts:
+  #   - family: NotoSansTC
+  #     fonts:
+  #       - asset: assets/fonts/NotoSansTC-Regular.ttf
+  #       - asset: assets/fonts/NotoSansTC-Bold.ttf
+  #         weight: 700
