@@ -12,13 +12,17 @@ import '../../router.dart';
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
+  // Static parameters to avoid recreating on each build
+  static const _recentBooksParams = {'limit': 5, 'adminView': true};
+  static const _usersCountParams = <String, String?>{'search': null, 'status': 'all'};
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final userProfile = ref.watch(userProfileProvider);
     final bookStats = ref.watch(bookStatisticsProvider);
-    final recentBooks = ref.watch(recentBooksProvider({'limit': 5, 'adminView': true}));
+    final recentBooks = ref.watch(recentBooksProvider(_recentBooksParams));
     final pendingBooks = ref.watch(pendingBooksProvider(5));
-    final usersCount = ref.watch(usersCountProvider({'search': null, 'status': 'all'}));
+    final usersCount = ref.watch(usersCountProvider(_usersCountParams));
     
     final isDesktop = ResponsiveBreakpoints.of(context).isDesktop;
     final isTablet = ResponsiveBreakpoints.of(context).isTablet;

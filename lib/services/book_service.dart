@@ -315,6 +315,9 @@ class BookService {
 
   // Get recent books
   Future<List<Book>> getRecentBooks({int limit = 5, bool adminView = false}) async {
+    if (kDebugMode) {
+      print('🔍 Getting recent books: limit=$limit, adminView=$adminView');
+    }
     return getBooks(
       sortBy: 'created_at',
       ascending: false,
