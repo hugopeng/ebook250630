@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'services/environment_service.dart';
+import 'services/supabase_service.dart';
 import 'screens/search/search_screen.dart';
 import 'screens/user/profile_screen.dart';
 
@@ -113,11 +114,8 @@ void main() async {
       throw Exception('環境配置驗證失敗');
     }
     
-    // 初始化 Supabase
-    await Supabase.initialize(
-      url: envService.apiUrl,
-      anonKey: envService.anonKey,
-    );
+    // 初始化 SupabaseService
+    await SupabaseService.instance.initialize();
     
     runApp(const ProviderScope(child: SoRFullApp()));
   } catch (e) {

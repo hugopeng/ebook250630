@@ -46,51 +46,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      // 檢查認證狀態
+      // 直接從 AuthService 取得當前用戶
       final authService = AuthService.instance;
-      final isAuth = authService.isAuthenticated;
       final currentUser = authService.currentUser;
       
-      _showSuccessSnackBar('認證狀態: $isAuth, 用戶: ${currentUser?.email ?? "null"}');
-      
       if (currentUser != null && mounted) {
-        // 取得用戶基本資訊
-        final email = currentUser.email;
-        final fullName = currentUser.userMetadata?['full_name'];
-        final avatarUrl = currentUser.userMetadata?['avatar_url'];
-        
-        _showSuccessSnackBar('用戶資料: email=$email, name=$fullName');
-        
         // 先顯示基本認證資訊
         setState(() {
-          _usernameController.text = fullName ?? 
-                                   email?.split('@').first ?? 
+          _usernameController.text = currentUser.userMetadata?['full_name'] ?? 
+                                   currentUser.email?.split('@').first ?? 
                                    'User';
-          _emailController.text = email ?? '';
-          _currentAvatarUrl = avatarUrl;
+          _emailController.text = currentUser.email ?? '';
+          _currentAvatarUrl = currentUser.userMetadata?['avatar_url'];
         });
 
         // 然後嘗試載入資料庫中的完整用戶資料
         try {
           final userProfile = await authService.getCurrentUserProfile();
           if (userProfile != null && mounted) {
-            _showSuccessSnackBar('資料庫用戶資料載入成功');
             setState(() {
               _usernameController.text = userProfile.username ?? _usernameController.text;
               _emailController.text = userProfile.email ?? _emailController.text;
               _currentAvatarUrl = userProfile.avatarUrl ?? _currentAvatarUrl;
             });
-          } else {
-            _showErrorSnackBar('資料庫用戶資料為空');
           }
         } catch (profileError) {
-          _showErrorSnackBar('資料庫載入失敗: $profileError');
+          // 資料庫載入失敗，保留基本認證資訊
+          print('Profile load error: $profileError');
         }
-      } else {
-        _showErrorSnackBar('未找到認證用戶');
       }
     } catch (e) {
-      _showErrorSnackBar('認證錯誤: $e');
+      print('Auth error: $e');
     }
   }
 
@@ -246,13 +232,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         backgroundColor: AppConstants.primaryColor,
         foregroundColor: Colors.white,
         actions: [
-          // 測試用重新載入按鈕
-          IconButton(
-            onPressed: () {
-              _loadUserProfile();
-            },
-            icon: const Icon(Icons.refresh),
-          ),
           if (!_isEditing)
             IconButton(
               onPressed: () {
