@@ -11,9 +11,9 @@ class SearchService {
     try {
       dynamic query = _supabase.books.select();
 
-      // 文字搜尋 (書名或作者)
+      // 文字搜尋 (書名、作者或描述)
       if (filters.query != null && filters.query!.isNotEmpty) {
-        query = query.or('title.ilike.%${filters.query}%,author.ilike.%${filters.query}%');
+        query = query.or('title.ilike.%${filters.query}%,author.ilike.%${filters.query}%,description.ilike.%${filters.query}%');
       }
 
       // 分類篩選
@@ -47,12 +47,19 @@ class SearchService {
         query = query.order('created_at', ascending: false);
       }
 
+      if (kDebugMode) {
+        print('🔍 執行搜尋查詢...');
+        print('📝 搜尋關鍵字: ${filters.query}');
+        print('📊 分類篩選: ${filters.category}');
+        print('📁 檔案類型: ${filters.fileType}');
+      }
+
       final response = await query;
 
       if (kDebugMode) {
         print('🔍 搜尋結果: ${response.length} 筆');
-        if (filters.query != null) {
-          print('📝 搜尋關鍵字: ${filters.query}');
+        if (response.isNotEmpty) {
+          print('📚 第一筆結果: ${response.first}');
         }
       }
 
