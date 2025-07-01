@@ -41,16 +41,49 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
   AuthNotifier() : super(const AsyncValue.data(null));
 
   Future<void> signInWithGoogle() async {
+    if (kDebugMode) {
+      print('🔍 ===========================================');
+      print('🔍 [AUTH_PROVIDER] AuthNotifier.signInWithGoogle() 被調用');
+      print('🔍 [AUTH_PROVIDER] 當前 State: ${state.toString()}');
+    }
+    
     state = const AsyncValue.loading();
+    
+    if (kDebugMode) {
+      print('🔍 [AUTH_PROVIDER] State 設為 Loading...');
+    }
+    
     try {
-      await AuthService.instance.signInWithGoogle();
+      if (kDebugMode) {
+        print('🔍 [AUTH_PROVIDER] 調用 AuthService.signInWithGoogle()...');
+      }
+      
+      final result = await AuthService.instance.signInWithGoogle();
+      
+      if (kDebugMode) {
+        print('🔍 [AUTH_PROVIDER] AuthService.signInWithGoogle() 返回: $result');
+      }
+      
       // User profile creation is now handled automatically by app.dart listener
       state = const AsyncValue.data(null);
+      
+      if (kDebugMode) {
+        print('✅ [AUTH_PROVIDER] AuthNotifier.signInWithGoogle() 完成');
+        print('🔍 [AUTH_PROVIDER] State 設為 Data(null)');
+      }
     } catch (error, stackTrace) {
       if (kDebugMode) {
-        print('❌ Google 認證失敗: $error');
+        print('❌ ===========================================');
+        print('❌ [AUTH_PROVIDER] Google 認證失敗: $error');
+        print('❌ [AUTH_PROVIDER] 錯誤類型: ${error.runtimeType}');
+        print('❌ [AUTH_PROVIDER] 堆疊追蹤: $stackTrace');
       }
       state = AsyncValue.error(error, stackTrace);
+      
+      if (kDebugMode) {
+        print('❌ [AUTH_PROVIDER] State 設為 Error');
+        print('❌ ===========================================');
+      }
     }
   }
 

@@ -16,26 +16,64 @@ class MyApp extends ConsumerWidget {
     
     // Listen to auth state changes and auto-create user profile
     ref.listen(authStateProvider, (previous, next) {
-      next.whenData((authState) async {
-        final isLoggedIn = authState.session != null;
-        
-        if (isLoggedIn && (previous?.value?.session == null)) {
-          // User just logged in
+      if (kDebugMode) {
+        print('🔍 ===========================================');
+        print('🔍 [APP.DART] 認證狀態變化檢測');
+        print('  Previous State: ${previous?.value?.session != null ? "已登入" : "未登入"} (${previous?.value?.session?.user.email ?? "無"})');
+        print('  Current State: ${next.value?.session != null ? "已登入" : "未登入"} (${next.value?.session?.user.email ?? "無"})');
+        print('  HasError: ${next.hasError}');
+        print('  IsLoading: ${next.isLoading}');
+        if (next.hasError) {
+          print('  Error: ${next.error}');
+        }
+      }
+      
+      next.when(
+        data: (authState) async {
+          final isLoggedIn = authState.session != null;
+          final wasLoggedIn = previous?.value?.session != null;
+          
           if (kDebugMode) {
-            print('🔍 檢測到用戶登入，自動觸發用戶資料創建...');
+            print('🔍 [APP.DART] 詳細狀態:');
+            print('  當前登入狀態: $isLoggedIn');
+            print('  之前登入狀態: $wasLoggedIn');
+            print('  用戶ID: ${authState.session?.user.id ?? "無"}');
+            print('  用戶Email: ${authState.session?.user.email ?? "無"}');
+            print('  AuthState Event: ${authState.event}');
           }
           
-          try {
-            // Wait a moment for auth state to fully update
-            await Future.delayed(const Duration(milliseconds: 500));
-            await AuthService.instance.getCurrentUserProfile();
-          } catch (e) {
+          if (isLoggedIn && !wasLoggedIn) {
+            // User just logged in
             if (kDebugMode) {
-              print('❌ 自動創建用戶資料失敗: $e');
+              print('🔍 [APP.DART] 檢測到用戶登入，自動觸發用戶資料創建...');
+            }
+            
+            try {
+              // Wait a moment for auth state to fully update
+              await Future.delayed(const Duration(milliseconds: 500));
+              final profile = await AuthService.instance.getCurrentUserProfile();
+              
+              if (kDebugMode) {
+                print('🔍 [APP.DART] 用戶資料創建結果: ${profile != null ? "成功" : "失敗"}');
+              }
+            } catch (e) {
+              if (kDebugMode) {
+                print('❌ [APP.DART] 自動創建用戶資料失敗: $e');
+              }
             }
           }
-        }
-      });
+        },
+        loading: () {
+          if (kDebugMode) {
+            print('🔍 [APP.DART] Auth state is loading...');
+          }
+        },
+        error: (error, stackTrace) {
+          if (kDebugMode) {
+            print('❌ [APP.DART] Auth state error: $error');
+          }
+        },
+      );
     });
 
     return MaterialApp.router(

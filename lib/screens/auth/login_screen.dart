@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -44,7 +45,24 @@ class LoginScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 // Proceed with Google registration
-                ref.read(authNotifierProvider.notifier).signInWithGoogle();
+                if (kDebugMode) {
+                  print('🔍 ===========================================');
+                  print('🔍 [LOGIN_SCREEN] 註冊確認被點擊，開始 Google 認證');
+                  print('🔍 [LOGIN_SCREEN] 當前時間: ${DateTime.now()}');
+                  print('🔍 [LOGIN_SCREEN] 調用 AuthNotifier.signInWithGoogle()...');
+                }
+                
+                try {
+                  ref.read(authNotifierProvider.notifier).signInWithGoogle();
+                  
+                  if (kDebugMode) {
+                    print('🔍 [LOGIN_SCREEN] AuthNotifier.signInWithGoogle() 調用完成');
+                  }
+                } catch (e) {
+                  if (kDebugMode) {
+                    print('❌ [LOGIN_SCREEN] 調用 AuthNotifier.signInWithGoogle() 發生錯誤: $e');
+                  }
+                }
               },
               child: const Text('確認註冊'),
             ),
@@ -137,7 +155,26 @@ class LoginScreen extends ConsumerWidget {
                           child: ElevatedButton.icon(
                             onPressed: authNotifier.isLoading 
                                 ? null 
-                                : () => ref.read(authNotifierProvider.notifier).signInWithGoogle(),
+                                : () {
+                                    if (kDebugMode) {
+                                      print('🔍 ===========================================');
+                                      print('🔍 [LOGIN_SCREEN] 登入按鈕被點擊');
+                                      print('🔍 [LOGIN_SCREEN] 當前時間: ${DateTime.now()}');
+                                      print('🔍 [LOGIN_SCREEN] 調用 AuthNotifier.signInWithGoogle()...');
+                                    }
+                                    
+                                    try {
+                                      ref.read(authNotifierProvider.notifier).signInWithGoogle();
+                                      
+                                      if (kDebugMode) {
+                                        print('🔍 [LOGIN_SCREEN] AuthNotifier.signInWithGoogle() 調用完成');
+                                      }
+                                    } catch (e) {
+                                      if (kDebugMode) {
+                                        print('❌ [LOGIN_SCREEN] 調用 AuthNotifier.signInWithGoogle() 發生錯誤: $e');
+                                      }
+                                    }
+                                  },
                             icon: authNotifier.isLoading
                                 ? const SizedBox(
                                     width: 20,
@@ -177,7 +214,26 @@ class LoginScreen extends ConsumerWidget {
                           child: OutlinedButton.icon(
                             onPressed: authNotifier.isLoading 
                                 ? null 
-                                : () => _handleRegister(context, ref),
+                                : () {
+                                    if (kDebugMode) {
+                                      print('🔍 ===========================================');
+                                      print('🔍 [LOGIN_SCREEN] 註冊按鈕被點擊');
+                                      print('🔍 [LOGIN_SCREEN] 當前時間: ${DateTime.now()}');
+                                      print('🔍 [LOGIN_SCREEN] 調用 _handleRegister()...');
+                                    }
+                                    
+                                    try {
+                                      _handleRegister(context, ref);
+                                      
+                                      if (kDebugMode) {
+                                        print('🔍 [LOGIN_SCREEN] _handleRegister() 調用完成');
+                                      }
+                                    } catch (e) {
+                                      if (kDebugMode) {
+                                        print('❌ [LOGIN_SCREEN] _handleRegister() 發生錯誤: $e');
+                                      }
+                                    }
+                                  },
                             icon: authNotifier.isLoading
                                 ? const SizedBox(
                                     width: 20,

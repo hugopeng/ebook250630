@@ -22,24 +22,62 @@ class AuthService {
   Future<bool> signInWithGoogle() async {
     try {
       if (kDebugMode) {
+        print('🔍 ===========================================');
         print('🔍 開始 Google 認證流程...');
         print('🔍 當前認證狀態: ${isAuthenticated}');
+        print('🔍 當前用戶: ${currentUser?.id ?? "無"} (${currentUser?.email ?? "無"}})');
+        print('🔍 Supabase Client Status: ${_supabase.auth.currentSession != null ? "有會話" : "無會話"}');
+      }
+      
+      final redirectUrl = kIsWeb ? null : 'io.supabase.ebook250630://login-callback/';
+      
+      if (kDebugMode) {
+        print('🔍 OAuth 配置:');
+        print('  Provider: Google');
+        print('  RedirectTo: $redirectUrl');
+        print('  Is Web: $kIsWeb');
+        print('  Platform: ${kIsWeb ? "Web" : "Mobile"}');
+      }
+      
+      // 監聽認證狀態變化
+      if (kDebugMode) {
+        print('🔍 開始監聽認證狀態變化...');
+        _supabase.auth.onAuthStateChange.listen((event) {
+          print('🔍 認證狀態變化事件: ${event.event}');
+          print('🔍 Session: ${event.session != null ? "存在" : "不存在"}');
+          if (event.session != null) {
+            print('🔍 用戶ID: ${event.session!.user.id}');
+            print('🔍 用戶Email: ${event.session!.user.email}');
+          }
+        });
+      }
+      
+      if (kDebugMode) {
+        print('🔍 調用 signInWithOAuth...');
       }
       
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? null : 'io.supabase.ebook250630://login-callback/',
+        redirectTo: redirectUrl,
       );
       
       if (kDebugMode) {
         print('✅ Google 認證請求已發送');
         print('🔍 等待認證完成...');
+        print('🔍 signInWithOAuth 調用完成，無異常');
       }
       
       return true;
     } catch (e) {
       if (kDebugMode) {
+        print('❌ ===========================================');
         print('❌ Google 認證錯誤: $e');
+        print('❌ 錯誤類型: ${e.runtimeType}');
+        if (e is AuthException) {
+          print('❌ AuthException - Code: ${e.statusCode}');
+          print('❌ AuthException - Message: ${e.message}');
+        }
+        print('❌ ===========================================');
       }
       rethrow;
     }
