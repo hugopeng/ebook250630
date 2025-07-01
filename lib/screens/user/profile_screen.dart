@@ -26,6 +26,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isEditing = false;
   File? _selectedAvatar;
   String? _currentAvatarUrl;
+  bool _isGoogleUser = false;
 
   @override
   void initState() {
@@ -51,6 +52,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final currentUser = authService.currentUser;
       
       if (currentUser != null && mounted) {
+        // 檢查是否為 Google 登入用戶
+        final isGoogleUser = currentUser.appMetadata['provider'] == 'google' ||
+                           (currentUser.identities?.any((identity) => identity.provider == 'google') ?? false);
+        
         // 先顯示基本認證資訊
         setState(() {
           _usernameController.text = currentUser.userMetadata?['full_name'] ?? 
@@ -58,6 +63,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                    'User';
           _emailController.text = currentUser.email ?? '';
           _currentAvatarUrl = currentUser.userMetadata?['avatar_url'];
+          _isGoogleUser = isGoogleUser;
         });
 
         // 然後嘗試載入資料庫中的完整用戶資料
@@ -471,20 +477,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildActionButtons() {
     return Column(
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _changePassword,
-            icon: const Icon(Icons.lock_reset),
-            label: const Text('重設密碼'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+        // 只有非 Google 登入用戶才顯示重設密碼按鈕
+        if (!_isGoogleUser) ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _changePassword,
+              icon: const Icon(Icons.lock_reset),
+              label: const Text('重設密碼'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
             ),
           ),
-        ),
-        
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
+        ],
         
         SizedBox(
           width: double.infinity,
