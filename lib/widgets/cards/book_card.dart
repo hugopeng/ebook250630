@@ -11,25 +11,29 @@ class BookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 2,
-      clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+    return SizedBox(
+      height: 140,
+      child: Card(
+        elevation: 2,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       child: InkWell(
         onTap: () => context.push(Routes.bookDetailPath(book.id)),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Book Cover
-            Expanded(
-              flex: 3,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                ),
+            Container(
+              width: 80,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
                 child: book.coverUrl != null
                     ? CachedNetworkImage(
                         imageUrl: book.coverUrl!,
@@ -46,11 +50,12 @@ class BookCard extends StatelessWidget {
               ),
             ),
             
+            const SizedBox(width: 12),
+            
             // Book Info
             Expanded(
-              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -143,6 +148,7 @@ class BookCard extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
 
