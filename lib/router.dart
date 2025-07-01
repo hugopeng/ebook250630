@@ -22,6 +22,8 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return GoRouter(
     debugLogDiagnostics: true,
+    // Enable logging to debug route conflicts
+    routerNeglect: false,
     initialLocation: '/',
     redirect: (context, state) {
       final location = state.uri.path;
@@ -107,20 +109,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       
-      // Admin Routes - Direct routes without shell for now to fix routing issue
+      // Admin Routes - Flat structure for compatibility
       GoRoute(
         path: '/admin',
         builder: (context, state) => const AdminDashboardScreen(),
       ),
-      
-      // Books Management
       GoRoute(
         path: '/admin/books',
         builder: (context, state) => const BooksManagementScreen(),
       ),
       GoRoute(
         path: '/admin/books/add',
-        builder: (context, state) => const AddBookScreen(),
+        builder: (context, state) => Scaffold(
+          appBar: AppBar(title: const Text('新增書籍')),
+          body: const Center(
+            child: Text('新增書籍頁面（測試）'),
+          ),
+        ),
       ),
       GoRoute(
         path: '/admin/books/:id/edit',
@@ -129,8 +134,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           return EditBookScreen(bookId: bookId);
         },
       ),
-      
-      // Users Management
       GoRoute(
         path: '/admin/users',
         builder: (context, state) => const UsersManagementScreen(),
