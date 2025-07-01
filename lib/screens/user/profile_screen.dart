@@ -41,13 +41,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    final userProfileAsync = await ref.read(userProfileProvider.future);
-    if (userProfileAsync != null && mounted) {
-      setState(() {
-        _usernameController.text = userProfileAsync.username ?? '';
-        _emailController.text = userProfileAsync.email ?? '';
-        _currentAvatarUrl = userProfileAsync.avatarUrl;
-      });
+    try {
+      // 直接從 currentUser 取得基本資訊作為後備
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null) {
+        // 先用 currentUser 的資訊填入
+        setState(() {
+          _usernameController.text = currentUser.userMetadata?['full_name'] ?? 
+                                   currentUser.email?.split('@').first ?? '';
+          _emailController.text = currentUser.email ?? '';
+          _currentAvatarUrl = currentUser.userMetadata?['avatar_url'];
+        });
+      }
+
+      // 然後嘗試載入完整的用戶資料
+      final userProfileAsync = await ref.read(userProfileProvider.future);
+      if (userProfileAsync != null && mounted) {
+        setState(() {
+          _usernameController.text = userProfileAsync.username ?? _usernameController.text;
+          _emailController.text = userProfileAsync.email ?? _emailController.text;
+          _currentAvatarUrl = userProfileAsync.avatarUrl ?? _currentAvatarUrl;
+        });
+      }
+    } catch (e) {
+      // 如果載入失敗，至少顯示基本的用戶資訊
+      final currentUser = ref.read(currentUserProvider);
+      if (currentUser != null && mounted) {
+        setState(() {
+          _usernameController.text = currentUser.userMetadata?['full_name'] ?? 
+                                   currentUser.email?.split('@').first ?? '';
+          _emailController.text = currentUser.email ?? '';
+        });
+      }
     }
   }
 
@@ -189,9 +214,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       next.whenData((user) {
         if (user != null && mounted) {
           setState(() {
-            _usernameController.text = user.username ?? '';
-            _emailController.text = user.email ?? '';
-            _currentAvatarUrl = user.avatarUrl;
+            _usernameController.text = user.username ?? _usernameController.text;
+            _emailController.text = user.email ?? _emailController.text;
+            _currentAvatarUrl = user.avatarUrl ?? _currentAvatarUrl;
           });
         }
       });
