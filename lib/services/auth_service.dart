@@ -82,8 +82,9 @@ class AuthService {
                    user.email?.split('@').first ?? 
                    'User',
         'avatar_url': user.userMetadata?['avatar_url'],
-        'is_admin': false,
-        'is_active': true,
+        'is_admin': false,  // 預設為一般用戶
+        'is_active': true,  // 預設為啟用狀態
+        'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
       };
 
@@ -93,7 +94,9 @@ class AuthService {
           .single();
 
       if (kDebugMode) {
-        print('✅ Created new user profile: ${response['username']}');
+        print('✅ 新用戶註冊成功: ${response['username']} (${response['email']})');
+        print('✅ 用戶ID: ${response['id']}');
+        print('✅ 管理員權限: ${response['is_admin']}');
       }
 
       return app_user.User.fromJson({

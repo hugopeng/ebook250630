@@ -6,6 +6,54 @@ import '../../providers/auth_provider.dart';
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
 
+  void _handleRegister(BuildContext context, WidgetRef ref) {
+    // Show registration dialog first
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.person_add, color: Colors.blue),
+              SizedBox(width: 8),
+              Text('註冊新帳號'),
+            ],
+          ),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('點擊確認後，將使用您的 Google 帳號註冊：'),
+              SizedBox(height: 12),
+              Text('• 自動創建用戶資料'),
+              Text('• 預設為一般用戶權限'),
+              Text('• 可以開始使用所有功能'),
+              SizedBox(height: 12),
+              Text(
+                '如果您已有帳號，請取消並使用"登入"功能。',
+                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Proceed with Google registration
+                ref.read(authNotifierProvider.notifier).signInWithGoogle();
+              },
+              child: const Text('確認註冊'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authNotifier = ref.watch(authNotifierProvider);
@@ -104,7 +152,7 @@ class LoginScreen extends ConsumerWidget {
                                         const Icon(Icons.account_circle),
                                   ),
                             label: Text(
-                              authNotifier.isLoading ? '登入中...' : '使用 Google 帳號登入',
+                              authNotifier.isLoading ? '處理中...' : '使用 Google 帳號登入',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -117,6 +165,76 @@ class LoginScreen extends ConsumerWidget {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Register Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: OutlinedButton.icon(
+                            onPressed: authNotifier.isLoading 
+                                ? null 
+                                : () => _handleRegister(context, ref),
+                            icon: authNotifier.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : Image.asset(
+                                    'assets/icons/google.png',
+                                    width: 20,
+                                    height: 20,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const Icon(Icons.person_add),
+                                  ),
+                            label: Text(
+                              authNotifier.isLoading ? '處理中...' : '使用 Google 帳號註冊',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(context).colorScheme.primary,
+                              side: BorderSide(color: Theme.of(context).colorScheme.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Info Text
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.blue.shade700,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  '新用戶請點擊"註冊"，已有帳號請點擊"登入"',
+                                  style: TextStyle(
+                                    color: Colors.blue.shade700,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         
