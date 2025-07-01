@@ -340,16 +340,13 @@ class BookService {
       // Use Future.wait to execute queries in parallel for better performance
       // Add timeout to prevent hanging
       final results = await Future.wait([
-        // Get total count using Supabase count feature
-        SupabaseService.instance.books
-            .select('*', const FetchOptions(count: CountOption.exact))
-            .limit(0), // We only want the count, not the data
+        // Get total count - select only id to minimize data transfer
+        SupabaseService.instance.books.select('id'),
         
         // Get published count
         SupabaseService.instance.books
-            .select('*', const FetchOptions(count: CountOption.exact))
-            .eq('is_published', true)
-            .limit(0), // We only want the count, not the data
+            .select('id')
+            .eq('is_published', true),
       ]).timeout(
         const Duration(seconds: 15),
         onTimeout: () {
@@ -360,8 +357,8 @@ class BookService {
         },
       );
 
-      final totalBooks = results[0].count ?? 0;
-      final publishedBooks = results[1].count ?? 0;
+      final totalBooks = results[0].length;
+      final publishedBooks = results[1].length;
       final pendingBooks = totalBooks - publishedBooks;
 
       if (kDebugMode) {

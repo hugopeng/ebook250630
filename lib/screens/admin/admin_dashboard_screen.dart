@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -27,6 +28,19 @@ class AdminDashboardScreen extends ConsumerWidget {
         title: const Text('管理員儀表板'),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            onPressed: () {
+              // Refresh all providers
+              ref.invalidate(bookStatisticsProvider);
+              ref.invalidate(recentBooksProvider);
+              ref.invalidate(pendingBooksProvider);
+              ref.invalidate(usersCountProvider);
+            },
+            icon: const Icon(Icons.refresh),
+            tooltip: '重新載入',
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(isDesktop ? 32 : 16),
@@ -154,7 +168,7 @@ class _StatisticsSection extends StatelessWidget {
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.2,
+      childAspectRatio: 1.4,
       children: [
         // Total Books Card
         bookStats.when(
@@ -232,16 +246,27 @@ class _StatisticsSection extends StatelessWidget {
             footerText: '用戶管理',
             onTap: () => context.push(Routes.adminUsers),
           ),
-          loading: () => const _StatCardLoading(
-            title: '總用戶數',
-            icon: Icons.people,
-            color: Colors.indigo,
-          ),
-          error: (_, __) => const _StatCardError(
-            title: '總用戶數',
-            icon: Icons.people,
-            color: Colors.indigo,
-          ),
+          loading: () {
+            if (kDebugMode) {
+              print('🔄 Users count is still loading...');
+            }
+            return const _StatCardLoading(
+              title: '總用戶數',
+              icon: Icons.people,
+              color: Colors.indigo,
+            );
+          },
+          error: (error, stackTrace) {
+            if (kDebugMode) {
+              print('❌ Users count error: $error');
+              print('Stack trace: $stackTrace');
+            }
+            return const _StatCardError(
+              title: '總用戶數',
+              icon: Icons.people,
+              color: Colors.indigo,
+            );
+          },
         ),
       ],
     );
