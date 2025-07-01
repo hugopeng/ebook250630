@@ -44,8 +44,12 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
     state = const AsyncValue.loading();
     try {
       await AuthService.instance.signInWithGoogle();
+      // User profile creation is now handled automatically by app.dart listener
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
+      if (kDebugMode) {
+        print('❌ Google 認證失敗: $error');
+      }
       state = AsyncValue.error(error, stackTrace);
     }
   }

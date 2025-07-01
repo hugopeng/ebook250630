@@ -23,6 +23,7 @@ class AuthService {
     try {
       if (kDebugMode) {
         print('🔍 開始 Google 認證流程...');
+        print('🔍 當前認證狀態: ${isAuthenticated}');
       }
       
       await _supabase.auth.signInWithOAuth(

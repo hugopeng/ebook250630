@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'router.dart';
+import 'providers/auth_provider.dart';
+import 'services/auth_service.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -10,6 +13,30 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    
+    // Listen to auth state changes and auto-create user profile
+    ref.listen(authStateProvider, (previous, next) {
+      next.whenData((authState) async {
+        final isLoggedIn = authState.session != null;
+        
+        if (isLoggedIn && (previous?.value?.session == null)) {
+          // User just logged in
+          if (kDebugMode) {
+            print('🔍 檢測到用戶登入，自動觸發用戶資料創建...');
+          }
+          
+          try {
+            // Wait a moment for auth state to fully update
+            await Future.delayed(const Duration(milliseconds: 500));
+            await AuthService.instance.getCurrentUserProfile();
+          } catch (e) {
+            if (kDebugMode) {
+              print('❌ 自動創建用戶資料失敗: $e');
+            }
+          }
+        }
+      });
+    });
 
     return MaterialApp.router(
       title: 'SoR書庫',
