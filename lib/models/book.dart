@@ -55,8 +55,10 @@ class Book {
       productCode: json['product_code']?.toString(),
       isPublished: json['is_published'] as bool? ?? false,
       isFree: json['is_free'] as bool? ?? true,
-      averageRating: (json['average_rating'] as num?)?.toDouble(),
-      totalRatings: json['total_ratings'] as int? ?? 0,
+      averageRating: (json['average_rating'] as num?)?.toDouble() ?? 
+                     (json['rating_avg'] as num?)?.toDouble(),
+      totalRatings: json['total_ratings'] as int? ?? 
+                   json['rating_count'] as int? ?? 0,
       viewCount: json['view_count'] as int? ?? 0,
       uploaderId: json['uploader_id']?.toString(),
       createdAt: DateTime.parse(json['created_at'].toString()),

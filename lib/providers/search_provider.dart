@@ -183,6 +183,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
     // 如果沒有任何搜尋條件，直接返回
     if (filters.isEmpty) {
+      print('🚫 搜尋條件為空，不執行搜尋');
       state = state.copyWith(
         results: [],
         hasSearched: false,
@@ -190,6 +191,8 @@ class SearchNotifier extends StateNotifier<SearchState> {
       );
       return;
     }
+    
+    print('✅ 開始執行搜尋，條件: ${filters.query}');
 
     // 開始載入
     state = state.copyWith(
@@ -217,6 +220,7 @@ class SearchNotifier extends StateNotifier<SearchState> {
 
       // 執行搜尋
       final results = await _searchService.searchBooks(filters);
+      print('📊 搜尋完成，找到 ${results.length} 筆結果');
       
       // 更新搜尋歷史
       if (query != null && query.isNotEmpty) {
@@ -234,8 +238,11 @@ class SearchNotifier extends StateNotifier<SearchState> {
         }
       }
 
+      final newResults = offset == 0 ? results : [...state.results, ...results];
+      print('🔄 更新狀態，總結果數: ${newResults.length}');
+      
       state = state.copyWith(
-        results: offset == 0 ? results : [...state.results, ...results],
+        results: newResults,
         isLoading: false,
         hasSearched: true,
       );
