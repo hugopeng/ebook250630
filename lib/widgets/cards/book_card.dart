@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/book.dart';
 import '../../router.dart';
 
@@ -201,11 +202,35 @@ class BookCard extends StatelessWidget {
   }
 
   void _openUrl(BuildContext context) async {
-    // 這裡可以加入開啟 URL 的邏輯
-    final url = book.fileUrl ?? book.filePath;
-    if (url.isNotEmpty) {
+    String? urlToOpen;
+    
+    // 優先使用 fileUrl，如果沒有則使用 filePath
+    if (book.fileUrl != null && book.fileUrl!.isNotEmpty) {
+      urlToOpen = book.fileUrl;
+    } else if (book.filePath.isNotEmpty) {
+      urlToOpen = book.filePath;
+    }
+    
+    if (urlToOpen == null || urlToOpen.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('開啟: $url')),
+        const SnackBar(content: Text('書籍連結不存在')),
+      );
+      return;
+    }
+    
+    try {
+      final Uri uri = Uri.parse(urlToOpen);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: LaunchMode.platformDefault, // 在同一個瀏覽器TAB中開啟
+        );
+      } else {
+        throw Exception('無法開啟連結: $urlToOpen');
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('開啟連結失敗: $e')),
       );
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart' as app_user;
 import 'supabase_service.dart';
+import 'environment_service.dart';
 
 class AuthService {
   static AuthService? _instance;
@@ -60,7 +61,7 @@ class AuthService {
       final user = currentUser!;
       
       // First, try to get existing profile
-      final existingProfile = await _supabase.users
+      final existingProfile = await _supabase.from(EnvironmentService.instance.usersTable)
           .select()
           .eq('id', user.id)
           .maybeSingle();
@@ -85,7 +86,7 @@ class AuthService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      final response = await _supabase.users
+      final response = await _supabase.from(EnvironmentService.instance.usersTable)
           .insert(newProfile)
           .select()
           .single();
@@ -122,7 +123,7 @@ class AuthService {
       if (username != null) updates['username'] = username;
       if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
 
-      final response = await _supabase.users
+      final response = await _supabase.from(EnvironmentService.instance.usersTable)
           .update(updates)
           .eq('id', user.id)
           .select()
@@ -149,7 +150,8 @@ class AuthService {
     if (!isAuthenticated) return false;
     
     try {
-      final profile = await _supabase.users
+      final profile = await _supabase
+          .from(EnvironmentService.instance.usersTable)
           .select('is_admin')
           .eq('id', currentUser!.id)
           .maybeSingle();
@@ -171,7 +173,7 @@ class AuthService {
     int? offset,
   }) async {
     try {
-      dynamic query = _supabase.users.select();
+      dynamic query = _supabase.from(EnvironmentService.instance.usersTable).select();
 
       // Apply search filter
       if (search != null && search.isNotEmpty) {
@@ -218,7 +220,7 @@ class AuthService {
 
   Future<int> getUsersCount({String? search, String? status}) async {
     try {
-      dynamic query = _supabase.users.select('id');
+      dynamic query = _supabase.from(EnvironmentService.instance.usersTable).select('id');
 
       if (search != null && search.isNotEmpty) {
         query = query.or('username.ilike.%$search%,email.ilike.%$search%');
@@ -250,14 +252,14 @@ class AuthService {
 
   Future<bool> toggleUserStatus(String userId) async {
     try {
-      final user = await _supabase.users
+      final user = await _supabase.from(EnvironmentService.instance.usersTable)
           .select('is_active')
           .eq('id', userId)
           .single();
 
       final newStatus = !(user['is_active'] as bool);
 
-      await _supabase.users
+      await _supabase.from(EnvironmentService.instance.usersTable)
           .update({
             'is_active': newStatus,
             'updated_at': DateTime.now().toIso8601String(),
@@ -279,14 +281,14 @@ class AuthService {
 
   Future<bool> toggleAdminStatus(String userId) async {
     try {
-      final user = await _supabase.users
+      final user = await _supabase.from(EnvironmentService.instance.usersTable)
           .select('is_admin')
           .eq('id', userId)
           .single();
 
       final newStatus = !(user['is_admin'] as bool);
 
-      await _supabase.users
+      await _supabase.from(EnvironmentService.instance.usersTable)
           .update({
             'is_admin': newStatus,
             'updated_at': DateTime.now().toIso8601String(),
@@ -308,7 +310,7 @@ class AuthService {
 
   Future<bool> deleteUser(String userId) async {
     try {
-      await _supabase.users.delete().eq('id', userId);
+      await _supabase.from(EnvironmentService.instance.usersTable).delete().eq('id', userId);
 
       if (kDebugMode) {
         print('✅ User deleted successfully');

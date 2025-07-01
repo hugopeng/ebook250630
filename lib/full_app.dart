@@ -6,8 +6,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart';
 import 'services/environment_service.dart';
 import 'services/supabase_service.dart';
+import 'services/auth_service.dart';
 import 'screens/search/search_screen.dart';
 import 'screens/user/profile_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
 
 // 條件導入 Web API
 import 'dart:html' as html show window;
@@ -179,6 +181,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   bool isLoading = true;
   String? error;
   User? currentUser;
+  bool isAdmin = false;
 
   @override
   void initState() {
@@ -205,6 +208,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   Future<void> _checkAuth() async {
     currentUser = supabase.auth.currentUser;
+    if (currentUser != null) {
+      // 檢查管理員權限
+      isAdmin = await AuthService.instance.isCurrentUserAdmin();
+    } else {
+      isAdmin = false;
+    }
     setState(() {});
   }
 
@@ -263,7 +272,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Future<void> _signInWithGoogle() async {
     try {
       await supabase.auth.signInWithOAuth(OAuthProvider.google);
-      _checkAuth();
+      await _checkAuth(); // 確保等待檢查完成
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('登入失敗: $e')),
@@ -276,6 +285,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       await supabase.auth.signOut();
       setState(() {
         currentUser = null;
+        isAdmin = false;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -303,6 +313,18 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             tooltip: '搜尋',
           ),
           if (currentUser != null) ...[
+            // 管理後台入口（只有管理員可見）
+            if (isAdmin)
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+                  );
+                },
+                icon: const Icon(Icons.admin_panel_settings),
+                tooltip: '管理後台',
+              ),
             IconButton(
               onPressed: () {
                 Navigator.push(
