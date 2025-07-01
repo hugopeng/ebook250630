@@ -17,9 +17,9 @@ class AuthService {
   Stream<AuthState> get authStateChanges => _supabase.authStateChanges;
 
   // Sign in with Google (using Supabase Auth)
-  Future<AuthResponse> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     try {
-      final response = await _supabase.client.auth.signInWithOAuth(
+      await _supabase.client.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: kIsWeb ? null : 'io.supabase.ebook250630://login-callback/',
       );
@@ -28,7 +28,7 @@ class AuthService {
         print('✅ Google sign in initiated');
       }
       
-      return response;
+      return true;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Google sign in error: $e');
@@ -171,7 +171,7 @@ class AuthService {
     int? offset,
   }) async {
     try {
-      var query = _supabase.users.select();
+      dynamic query = _supabase.users.select();
 
       // Apply search filter
       if (search != null && search.isNotEmpty) {
@@ -218,7 +218,7 @@ class AuthService {
 
   Future<int> getUsersCount({String? search, String? status}) async {
     try {
-      var query = _supabase.users.select('id');
+      dynamic query = _supabase.users.select('id');
 
       if (search != null && search.isNotEmpty) {
         query = query.or('username.ilike.%$search%,email.ilike.%$search%');
@@ -239,7 +239,7 @@ class AuthService {
       }
 
       final response = await query;
-      return response.count ?? 0;
+      return response.length;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error getting users count: $e');

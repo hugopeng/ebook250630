@@ -41,14 +41,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    final userProfile = ref.read(userProfileProvider);
-    userProfile.whenData((user) {
-      if (user != null) {
-        _usernameController.text = user.username ?? '';
-        _emailController.text = user.email ?? '';
-        _currentAvatarUrl = user.avatarUrl;
-      }
-    });
+    final userProfileAsync = await ref.read(userProfileProvider.future);
+    if (userProfileAsync != null && mounted) {
+      setState(() {
+        _usernameController.text = userProfileAsync.username ?? '';
+        _emailController.text = userProfileAsync.email ?? '';
+        _currentAvatarUrl = userProfileAsync.avatarUrl;
+      });
+    }
   }
 
   Future<void> _loadReadingStats() async {
@@ -182,6 +182,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authNotifierProvider);
     final readingStats = ref.watch(readingStatsProvider);
+    final userProfile = ref.watch(userProfileProvider);
+
+    // Listen for user profile changes and update fields
+    ref.listen(userProfileProvider, (previous, next) {
+      next.whenData((user) {
+        if (user != null && mounted) {
+          setState(() {
+            _usernameController.text = user.username ?? '';
+            _emailController.text = user.email ?? '';
+            _currentAvatarUrl = user.avatarUrl;
+          });
+        }
+      });
+    });
 
     return Scaffold(
       appBar: AppBar(

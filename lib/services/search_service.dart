@@ -9,7 +9,7 @@ class SearchService {
   // 搜尋書籍
   Future<List<Book>> searchBooks(SearchFilters filters) async {
     try {
-      var query = _supabase.books.select();
+      dynamic query = _supabase.books.select();
 
       // 文字搜尋 (書名或作者)
       if (filters.query != null && filters.query!.isNotEmpty) {
@@ -34,6 +34,9 @@ class SearchService {
       // 只顯示已發布的書籍
       query = query.eq('is_published', true);
 
+      // 分頁
+      query = query.range(filters.offset, filters.offset + filters.limit - 1);
+
       // 排序
       if (filters.sortByRating) {
         query = query.order('average_rating', ascending: false);
@@ -43,9 +46,6 @@ class SearchService {
         // 預設按創建時間降序排列
         query = query.order('created_at', ascending: false);
       }
-
-      // 分頁
-      query = query.range(filters.offset, filters.offset + filters.limit - 1);
 
       final response = await query;
 

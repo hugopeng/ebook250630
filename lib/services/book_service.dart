@@ -23,7 +23,7 @@ class BookService {
     bool adminView = false,
   }) async {
     try {
-      var query = _supabase.books.select();
+      dynamic query = _supabase.books.select();
 
       // If not admin view, only show published books
       if (!adminView) {
@@ -52,19 +52,19 @@ class BookService {
         query = query.eq('category', category);
       }
 
-      // Apply sorting
-      if (sortBy != null) {
-        query = query.order(sortBy, ascending: ascending);
-      } else {
-        query = query.order('created_at', ascending: false);
-      }
-
-      // Apply pagination
+      // Apply pagination first
       if (limit != null) {
         query = query.limit(limit);
         if (offset != null) {
           query = query.range(offset, offset + limit - 1);
         }
+      }
+
+      // Apply sorting
+      if (sortBy != null) {
+        query = query.order(sortBy, ascending: ascending);
+      } else {
+        query = query.order('created_at', ascending: false);
       }
 
       final response = await query;
@@ -88,7 +88,7 @@ class BookService {
     bool adminView = false,
   }) async {
     try {
-      var query = _supabase.books.select('id');
+      dynamic query = _supabase.books.select('id');
 
       if (!adminView) {
         query = query.eq('is_published', true);
@@ -114,7 +114,7 @@ class BookService {
       }
 
       final response = await query;
-      return response.count ?? 0;
+      return response.length;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error getting books count: $e');
