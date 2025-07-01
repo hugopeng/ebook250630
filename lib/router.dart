@@ -70,46 +70,48 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const LoginScreen(),
       ),
       
-      // Main App with Bottom Navigation
-      ShellRoute(
-        builder: (context, state, child) {
-          return ScaffoldWithNav(child: child);
+      // Books Routes
+      GoRoute(
+        path: '/books',
+        builder: (context, state) => ScaffoldWithNav(
+          child: const BooksScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/books/:id',
+        builder: (context, state) {
+          final bookId = state.pathParameters['id']!;
+          return ScaffoldWithNav(
+            child: BookDetailScreen(bookId: bookId),
+          );
         },
-        routes: [
-          // Books Routes
-          GoRoute(
-            path: '/books',
-            builder: (context, state) => const BooksScreen(),
-          ),
-          GoRoute(
-            path: '/books/:id',
-            builder: (context, state) {
-              final bookId = state.pathParameters['id']!;
-              return BookDetailScreen(bookId: bookId);
-            },
-          ),
-          
-          // User Dashboard
-          GoRoute(
-            path: '/dashboard',
-            builder: (context, state) => const UserDashboardScreen(),
-          ),
-          
-          // Search
-          GoRoute(
-            path: '/search',
-            builder: (context, state) => const SearchScreen(),
-          ),
-          
-          // User Profile
-          GoRoute(
-            path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
-          ),
-        ],
       ),
       
-      // Admin Routes - Flat structure for compatibility
+      // User Dashboard
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => ScaffoldWithNav(
+          child: const UserDashboardScreen(),
+        ),
+      ),
+      
+      // Search
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => ScaffoldWithNav(
+          child: const SearchScreen(),
+        ),
+      ),
+      
+      // User Profile
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => ScaffoldWithNav(
+          child: const ProfileScreen(),
+        ),
+      ),
+      
+      // Admin Routes
       GoRoute(
         path: '/admin',
         builder: (context, state) => const AdminDashboardScreen(),

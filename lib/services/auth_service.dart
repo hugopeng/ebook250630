@@ -220,6 +220,10 @@ class AuthService {
 
   Future<int> getUsersCount({String? search, String? status}) async {
     try {
+      if (kDebugMode) {
+        print('🔍 Starting users count query with search: $search, status: $status');
+      }
+      
       dynamic query = _supabaseService.users.select('id');
 
       if (search != null && search.isNotEmpty) {
@@ -240,6 +244,10 @@ class AuthService {
         }
       }
 
+      if (kDebugMode) {
+        print('🔍 Executing users count query...');
+      }
+
       final response = await query.timeout(
         const Duration(seconds: 15),
         onTimeout: () {
@@ -249,10 +257,17 @@ class AuthService {
           throw Exception('Database query timeout');
         },
       );
-      return response.length;
+      
+      final count = response.length;
+      if (kDebugMode) {
+        print('✅ Users count query successful: $count users');
+      }
+      
+      return count;
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error getting users count: $e');
+        print('❌ Error type: ${e.runtimeType}');
       }
       return 0;
     }
