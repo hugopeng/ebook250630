@@ -122,12 +122,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/admin/books/add',
-        builder: (context, state) => Scaffold(
-          appBar: AppBar(title: const Text('新增書籍')),
-          body: const Center(
-            child: Text('新增書籍頁面（測試）'),
-          ),
-        ),
+        builder: (context, state) => const AddBookScreen(),
       ),
       GoRoute(
         path: '/admin/books/:id/edit',

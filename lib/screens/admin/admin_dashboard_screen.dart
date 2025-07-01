@@ -8,6 +8,7 @@ import '../../providers/book_provider.dart';
 import '../../models/user.dart' as app_user;
 import '../../models/book.dart';
 import '../../router.dart';
+import 'add_book_screen.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -15,6 +16,7 @@ class AdminDashboardScreen extends ConsumerWidget {
   // Static parameters to avoid recreating on each build
   static const _recentBooksParams = {'limit': 5, 'adminView': true};
   static const _usersCountParams = <String, String?>{'search': null, 'status': 'all'};
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -172,7 +174,7 @@ class _StatisticsSection extends StatelessWidget {
       crossAxisCount: crossAxisCount,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.4,
+      childAspectRatio: 1.5,
       children: [
         // Total Books Card
         bookStats.when(
@@ -316,7 +318,7 @@ class _StatCard extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(12),
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -364,7 +366,7 @@ class _StatCard extends StatelessWidget {
                   
                   // Footer
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
                       border: Border(
                         top: BorderSide(
@@ -805,7 +807,20 @@ class _QuickActionsSection extends StatelessWidget {
         'title': '新增書籍',
         'icon': Icons.add,
         'color': Colors.blue,
-        'onTap': () => context.go(Routes.adminAddBook),
+        'onTap': () {
+          try {
+            context.go(Routes.adminAddBook);
+          } catch (e) {
+            if (kDebugMode) {
+              print('❌ Navigation failed: $e');
+            }
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const AddBookScreen(),
+              ),
+            );
+          }
+        },
       },
       {
         'title': '管理書籍',
