@@ -3,10 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/foundation.dart';
 import 'services/environment_service.dart';
 import 'services/supabase_service.dart';
 import 'screens/search/search_screen.dart';
 import 'screens/user/profile_screen.dart';
+
+// 條件導入 Web API
+import 'dart:html' as html show window;
+// 如果不是 Web 平台，會導入空的實現
 
 // 簡化版本的模型類別 (不依賴 code generation)
 class SimpleBook {
@@ -178,8 +183,24 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _cleanUrl();
     _checkAuth();
     _loadBooks();
+  }
+
+  void _cleanUrl() {
+    // 只在 Web 平台清除 URL 中的 OAuth 授權碼參數
+    if (kIsWeb) {
+      final currentUrl = html.window.location.href;
+      final uri = Uri.parse(currentUrl);
+      
+      // 如果 URL 包含 code 或 state 參數，清除它們
+      if (uri.queryParameters.containsKey('code') || 
+          uri.queryParameters.containsKey('state')) {
+        final cleanUrl = '${uri.scheme}://${uri.host}:${uri.port}${uri.path}';
+        html.window.history.replaceState(null, '', cleanUrl);
+      }
+    }
   }
 
   Future<void> _checkAuth() async {
