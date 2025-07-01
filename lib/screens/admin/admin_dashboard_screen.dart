@@ -178,7 +178,7 @@ class _StatisticsSection extends StatelessWidget {
             icon: Icons.book,
             color: Colors.blue,
             footerText: '查看詳情',
-            onTap: () => context.push(Routes.adminBooks),
+            onTap: () => context.go(Routes.adminBooks),
           ),
           loading: () => const _StatCardLoading(
             title: '總書籍數',
@@ -200,7 +200,7 @@ class _StatisticsSection extends StatelessWidget {
             icon: Icons.check_circle,
             color: Colors.green,
             footerText: '查看詳情',
-            onTap: () => context.push('${Routes.adminBooks}?status=published'),
+            onTap: () => context.go('${Routes.adminBooks}?status=published'),
           ),
           loading: () => const _StatCardLoading(
             title: '已發布書籍',
@@ -222,7 +222,7 @@ class _StatisticsSection extends StatelessWidget {
             icon: Icons.schedule,
             color: Colors.orange,
             footerText: '查看詳情',
-            onTap: () => context.push('${Routes.adminBooks}?status=pending'),
+            onTap: () => context.go('${Routes.adminBooks}?status=pending'),
           ),
           loading: () => const _StatCardLoading(
             title: '待審核書籍',
@@ -244,7 +244,7 @@ class _StatisticsSection extends StatelessWidget {
             icon: Icons.people,
             color: Colors.indigo,
             footerText: '用戶管理',
-            onTap: () => context.push(Routes.adminUsers),
+            onTap: () => context.go(Routes.adminUsers),
           ),
           loading: () {
             if (kDebugMode) {
@@ -526,7 +526,7 @@ class _RecentBooksSection extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed: () => context.push(Routes.adminBooks),
+                            onPressed: () => context.go(Routes.adminBooks),
                             child: const Text('查看全部書籍'),
                           ),
                         ),
@@ -616,7 +616,7 @@ class _PendingBooksSection extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton(
-                            onPressed: () => context.push('${Routes.adminBooks}?status=pending'),
+                            onPressed: () => context.go('${Routes.adminBooks}?status=pending'),
                             child: const Text('查看全部待審核'),
                           ),
                         ),
@@ -762,7 +762,7 @@ class _PendingBookItem extends StatelessWidget {
             ),
           ),
           OutlinedButton(
-            onPressed: () => context.push(Routes.adminEditBookPath(book.id)),
+            onPressed: () => context.go(Routes.adminEditBookPath(book.id)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               minimumSize: Size.zero,
@@ -801,25 +801,25 @@ class _QuickActionsSection extends StatelessWidget {
         'title': '新增書籍',
         'icon': Icons.add,
         'color': Colors.blue,
-        'onTap': () => context.push(Routes.adminAddBook),
+        'onTap': () => context.go(Routes.adminAddBook),
       },
       {
         'title': '管理書籍',
         'icon': Icons.list,
         'color': Colors.blue.shade300,
-        'onTap': () => context.push(Routes.adminBooks),
+        'onTap': () => context.go(Routes.adminBooks),
       },
       {
         'title': '審核書籍',
         'icon': Icons.schedule,
         'color': Colors.orange,
-        'onTap': () => context.push('${Routes.adminBooks}?status=pending'),
+        'onTap': () => context.go('${Routes.adminBooks}?status=pending'),
       },
       {
         'title': '用戶管理',
         'icon': Icons.people,
         'color': Colors.indigo,
-        'onTap': () => context.push(Routes.adminUsers),
+        'onTap': () => context.go(Routes.adminUsers),
       },
     ];
 

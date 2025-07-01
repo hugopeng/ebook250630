@@ -107,41 +107,33 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       
-      // Admin Routes (separate shell for admin nav)
-      ShellRoute(
-        builder: (context, state, child) {
-          return ScaffoldWithNav(child: child, isAdmin: true);
+      // Admin Routes - Direct routes without shell for now to fix routing issue
+      GoRoute(
+        path: '/admin',
+        builder: (context, state) => const AdminDashboardScreen(),
+      ),
+      
+      // Books Management
+      GoRoute(
+        path: '/admin/books',
+        builder: (context, state) => const BooksManagementScreen(),
+      ),
+      GoRoute(
+        path: '/admin/books/add',
+        builder: (context, state) => const AddBookScreen(),
+      ),
+      GoRoute(
+        path: '/admin/books/:id/edit',
+        builder: (context, state) {
+          final bookId = state.pathParameters['id']!;
+          return EditBookScreen(bookId: bookId);
         },
-        routes: [
-          // Admin Dashboard
-          GoRoute(
-            path: '/admin',
-            builder: (context, state) => const AdminDashboardScreen(),
-          ),
-          
-          // Books Management
-          GoRoute(
-            path: '/admin/books',
-            builder: (context, state) => const BooksManagementScreen(),
-          ),
-          GoRoute(
-            path: '/admin/books/add',
-            builder: (context, state) => const AddBookScreen(),
-          ),
-          GoRoute(
-            path: '/admin/books/:id/edit',
-            builder: (context, state) {
-              final bookId = state.pathParameters['id']!;
-              return EditBookScreen(bookId: bookId);
-            },
-          ),
-          
-          // Users Management
-          GoRoute(
-            path: '/admin/users',
-            builder: (context, state) => const UsersManagementScreen(),
-          ),
-        ],
+      ),
+      
+      // Users Management
+      GoRoute(
+        path: '/admin/users',
+        builder: (context, state) => const UsersManagementScreen(),
       ),
     ],
     
