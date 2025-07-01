@@ -188,7 +188,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       await ref.read(authNotifierProvider.notifier).signOut();
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/login');
+        // 登出後返回首頁
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } catch (e) {
       _showErrorSnackBar('登出失敗: $e');
