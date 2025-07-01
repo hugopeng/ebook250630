@@ -52,12 +52,13 @@ class BookService {
         query = query.eq('category', category);
       }
 
-      // Apply pagination first
-      if (limit != null) {
+      // Apply pagination
+      if (limit != null && offset != null) {
+        // Use range for both offset and limit
+        query = query.range(offset, offset + limit - 1);
+      } else if (limit != null) {
+        // Use limit only when no offset is specified
         query = query.limit(limit);
-        if (offset != null) {
-          query = query.range(offset, offset + limit - 1);
-        }
       }
 
       // Apply sorting
@@ -67,7 +68,15 @@ class BookService {
         query = query.order('created_at', ascending: false);
       }
 
-      final response = await query;
+      final response = await query.timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          if (kDebugMode) {
+            print('⚠️ Books query timed out after 30 seconds');
+          }
+          throw Exception('Database query timeout');
+        },
+      );
       
       return (response as List)
           .map((book) => Book.fromJson(book))
@@ -328,11 +337,36 @@ class BookService {
   // Get statistics for admin dashboard
   Future<Map<String, int>> getBookStatistics() async {
     try {
-      final allBooks = await SupabaseService.instance.books.select('is_published');
-      
-      final totalBooks = allBooks.length;
-      final publishedBooks = allBooks.where((book) => book['is_published'] == true).length;
+      // Use Future.wait to execute queries in parallel for better performance
+      // Add timeout to prevent hanging
+      final results = await Future.wait([
+        // Get total count using Supabase count feature
+        SupabaseService.instance.books
+            .select('*', const FetchOptions(count: CountOption.exact))
+            .limit(0), // We only want the count, not the data
+        
+        // Get published count
+        SupabaseService.instance.books
+            .select('*', const FetchOptions(count: CountOption.exact))
+            .eq('is_published', true)
+            .limit(0), // We only want the count, not the data
+      ]).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          if (kDebugMode) {
+            print('⚠️ Book statistics query timed out after 15 seconds');
+          }
+          throw Exception('Database query timeout');
+        },
+      );
+
+      final totalBooks = results[0].count ?? 0;
+      final publishedBooks = results[1].count ?? 0;
       final pendingBooks = totalBooks - publishedBooks;
+
+      if (kDebugMode) {
+        print('✅ Book statistics: Total=$totalBooks, Published=$publishedBooks, Pending=$pendingBooks');
+      }
 
       return {
         'total': totalBooks,

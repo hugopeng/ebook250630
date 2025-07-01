@@ -240,7 +240,15 @@ class AuthService {
         }
       }
 
-      final response = await query;
+      final response = await query.timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          if (kDebugMode) {
+            print('⚠️ Users count query timed out after 15 seconds');
+          }
+          throw Exception('Database query timeout');
+        },
+      );
       return response.length;
     } catch (e) {
       if (kDebugMode) {
