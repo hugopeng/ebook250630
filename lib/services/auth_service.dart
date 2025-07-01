@@ -10,17 +10,18 @@ class AuthService {
   
   AuthService._();
 
-  final _supabase = SupabaseService.instance;
+  final _supabaseService = SupabaseService.instance;
+  SupabaseClient get _supabase => _supabaseService.client;
   
   // Auth state
-  User? get currentUser => _supabase.currentUser;
-  bool get isAuthenticated => _supabase.isAuthenticated;
-  Stream<AuthState> get authStateChanges => _supabase.authStateChanges;
+  User? get currentUser => _supabase.auth.currentUser;
+  bool get isAuthenticated => currentUser != null;
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 
   // Sign in with Google (using Supabase Auth)
   Future<bool> signInWithGoogle() async {
     try {
-      await _supabase.client.auth.signInWithOAuth(
+      await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: kIsWeb ? null : 'io.supabase.ebook250630://login-callback/',
       );
@@ -41,7 +42,7 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
-      await _supabase.client.auth.signOut();
+      await _supabase.auth.signOut();
       if (kDebugMode) {
         print('✅ User signed out successfully');
       }
@@ -61,7 +62,7 @@ class AuthService {
       final user = currentUser!;
       
       // First, try to get existing profile
-      final existingProfile = await _supabase.from(EnvironmentService.instance.usersTable)
+      final existingProfile = await _supabaseService.users
           .select()
           .eq('id', user.id)
           .maybeSingle();
@@ -86,7 +87,7 @@ class AuthService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      final response = await _supabase.from(EnvironmentService.instance.usersTable)
+      final response = await _supabaseService.users
           .insert(newProfile)
           .select()
           .single();
@@ -123,7 +124,7 @@ class AuthService {
       if (username != null) updates['username'] = username;
       if (avatarUrl != null) updates['avatar_url'] = avatarUrl;
 
-      final response = await _supabase.from(EnvironmentService.instance.usersTable)
+      final response = await _supabaseService.users
           .update(updates)
           .eq('id', user.id)
           .select()
@@ -150,8 +151,7 @@ class AuthService {
     if (!isAuthenticated) return false;
     
     try {
-      final profile = await _supabase
-          .from(EnvironmentService.instance.usersTable)
+      final profile = await _supabaseService.users
           .select('is_admin')
           .eq('id', currentUser!.id)
           .maybeSingle();
@@ -173,7 +173,7 @@ class AuthService {
     int? offset,
   }) async {
     try {
-      dynamic query = _supabase.from(EnvironmentService.instance.usersTable).select();
+      dynamic query = _supabaseService.users.select();
 
       // Apply search filter
       if (search != null && search.isNotEmpty) {
@@ -220,7 +220,7 @@ class AuthService {
 
   Future<int> getUsersCount({String? search, String? status}) async {
     try {
-      dynamic query = _supabase.from(EnvironmentService.instance.usersTable).select('id');
+      dynamic query = _supabaseService.users.select('id');
 
       if (search != null && search.isNotEmpty) {
         query = query.or('username.ilike.%$search%,email.ilike.%$search%');
@@ -252,14 +252,14 @@ class AuthService {
 
   Future<bool> toggleUserStatus(String userId) async {
     try {
-      final user = await _supabase.from(EnvironmentService.instance.usersTable)
+      final user = await _supabaseService.users
           .select('is_active')
           .eq('id', userId)
           .single();
 
       final newStatus = !(user['is_active'] as bool);
 
-      await _supabase.from(EnvironmentService.instance.usersTable)
+      await _supabaseService.users
           .update({
             'is_active': newStatus,
             'updated_at': DateTime.now().toIso8601String(),
@@ -281,14 +281,14 @@ class AuthService {
 
   Future<bool> toggleAdminStatus(String userId) async {
     try {
-      final user = await _supabase.from(EnvironmentService.instance.usersTable)
+      final user = await _supabaseService.users
           .select('is_admin')
           .eq('id', userId)
           .single();
 
       final newStatus = !(user['is_admin'] as bool);
 
-      await _supabase.from(EnvironmentService.instance.usersTable)
+      await _supabaseService.users
           .update({
             'is_admin': newStatus,
             'updated_at': DateTime.now().toIso8601String(),
@@ -310,7 +310,7 @@ class AuthService {
 
   Future<bool> deleteUser(String userId) async {
     try {
-      await _supabase.from(EnvironmentService.instance.usersTable).delete().eq('id', userId);
+      await _supabaseService.users.delete().eq('id', userId);
 
       if (kDebugMode) {
         print('✅ User deleted successfully');

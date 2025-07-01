@@ -23,7 +23,7 @@ class BookService {
     bool adminView = false,
   }) async {
     try {
-      dynamic query = _supabase.books.select();
+      dynamic query = SupabaseService.instance.books.select();
 
       // If not admin view, only show published books
       if (!adminView) {
@@ -88,7 +88,7 @@ class BookService {
     bool adminView = false,
   }) async {
     try {
-      dynamic query = _supabase.books.select('id');
+      dynamic query = SupabaseService.instance.books.select('id');
 
       if (!adminView) {
         query = query.eq('is_published', true);
@@ -126,7 +126,7 @@ class BookService {
   // Get single book by ID
   Future<Book?> getBookById(String bookId) async {
     try {
-      final response = await _supabase.books
+      final response = await SupabaseService.instance.books
           .select()
           .eq('id', bookId)
           .maybeSingle();
@@ -157,7 +157,7 @@ class BookService {
     bool isFree = true,
   }) async {
     try {
-      final currentUser = _supabase.currentUser;
+      final currentUser = SupabaseService.instance.currentUser;
       if (currentUser == null) {
         throw Exception('User must be authenticated to create books');
       }
@@ -178,7 +178,7 @@ class BookService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
-      final response = await _supabase.books
+      final response = await SupabaseService.instance.books
           .insert(bookData)
           .select()
           .single();
@@ -226,7 +226,7 @@ class BookService {
       if (isPublished != null) updates['is_published'] = isPublished;
       if (isFree != null) updates['is_free'] = isFree;
 
-      final response = await _supabase.books
+      final response = await SupabaseService.instance.books
           .update(updates)
           .eq('id', bookId)
           .select()
@@ -248,14 +248,14 @@ class BookService {
   // Toggle book publication status
   Future<bool> togglePublishStatus(String bookId) async {
     try {
-      final book = await _supabase.books
+      final book = await SupabaseService.instance.books
           .select('is_published')
           .eq('id', bookId)
           .single();
 
       final newStatus = !(book['is_published'] as bool);
 
-      await _supabase.books
+      await SupabaseService.instance.books
           .update({
             'is_published': newStatus,
             'updated_at': DateTime.now().toIso8601String(),
@@ -278,7 +278,7 @@ class BookService {
   // Delete book
   Future<bool> deleteBook(String bookId) async {
     try {
-      await _supabase.books.delete().eq('id', bookId);
+      await SupabaseService.instance.books.delete().eq('id', bookId);
 
       if (kDebugMode) {
         print('✅ Book deleted successfully');
@@ -296,7 +296,7 @@ class BookService {
   // Increment view count
   Future<void> incrementViewCount(String bookId) async {
     try {
-      await _supabase.client.rpc('increment_view_count', params: {'book_id': bookId});
+      await SupabaseService.instance.client.rpc('increment_view_count', params: {'book_id': bookId});
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error incrementing view count: $e');
@@ -328,7 +328,7 @@ class BookService {
   // Get statistics for admin dashboard
   Future<Map<String, int>> getBookStatistics() async {
     try {
-      final allBooks = await _supabase.books.select('is_published');
+      final allBooks = await SupabaseService.instance.books.select('is_published');
       
       final totalBooks = allBooks.length;
       final publishedBooks = allBooks.where((book) => book['is_published'] == true).length;
@@ -354,7 +354,7 @@ class BookService {
   // Get categories
   Future<List<String>> getCategories() async {
     try {
-      final response = await _supabase.books
+      final response = await SupabaseService.instance.books
           .select('category')
           .not('category', 'is', null);
 
