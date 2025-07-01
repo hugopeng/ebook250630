@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user.dart' as app_user;
@@ -82,6 +83,28 @@ class AuthNotifier extends StateNotifier<AsyncValue<void>> {
       await AuthService.instance.getCurrentUserProfile();
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> createUserProfile() async {
+    state = const AsyncValue.loading();
+    try {
+      if (kDebugMode) {
+        print('🔍 手動觸發用戶資料創建...');
+      }
+      
+      // Force create or get user profile
+      await AuthService.instance.getCurrentUserProfile();
+      state = const AsyncValue.data(null);
+      
+      if (kDebugMode) {
+        print('✅ 用戶資料創建完成');
+      }
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        print('❌ 用戶資料創建失敗: $error');
+      }
       state = AsyncValue.error(error, stackTrace);
     }
   }

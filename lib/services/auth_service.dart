@@ -21,19 +21,24 @@ class AuthService {
   // Sign in with Google (using Supabase Auth)
   Future<bool> signInWithGoogle() async {
     try {
+      if (kDebugMode) {
+        print('🔍 開始 Google 認證流程...');
+      }
+      
       await _supabase.auth.signInWithOAuth(
         OAuthProvider.google,
         redirectTo: kIsWeb ? null : 'io.supabase.ebook250630://login-callback/',
       );
       
       if (kDebugMode) {
-        print('✅ Google sign in initiated');
+        print('✅ Google 認證請求已發送');
+        print('🔍 等待認證完成...');
       }
       
       return true;
     } catch (e) {
       if (kDebugMode) {
-        print('❌ Google sign in error: $e');
+        print('❌ Google 認證錯誤: $e');
       }
       rethrow;
     }
@@ -56,10 +61,22 @@ class AuthService {
 
   // Get or create user profile
   Future<app_user.User?> getCurrentUserProfile() async {
-    if (!isAuthenticated) return null;
+    if (!isAuthenticated) {
+      if (kDebugMode) {
+        print('⚠️ 用戶未認證，無法獲取用戶資料');
+      }
+      return null;
+    }
 
     try {
       final user = currentUser!;
+      
+      if (kDebugMode) {
+        print('🔍 開始獲取用戶資料...');
+        print('🔍 Supabase 用戶ID: ${user.id}');
+        print('🔍 用戶Email: ${user.email}');
+        print('🔍 查詢表格: ${_supabaseService.usersTable}');
+      }
       
       // First, try to get existing profile
       final existingProfile = await _supabaseService.users
@@ -68,10 +85,18 @@ class AuthService {
           .maybeSingle();
 
       if (existingProfile != null) {
+        if (kDebugMode) {
+          print('✅ 找到現有用戶資料: ${existingProfile['username']}');
+        }
         return app_user.User.fromJson({
           ...existingProfile,
           'email': user.email,
         });
+      }
+
+      if (kDebugMode) {
+        print('🔍 未找到用戶資料，開始創建新用戶...');
+        print('🔍 用戶元數據: ${user.userMetadata}');
       }
 
       // If no profile exists, create one
@@ -88,6 +113,11 @@ class AuthService {
         'updated_at': DateTime.now().toIso8601String(),
       };
 
+      if (kDebugMode) {
+        print('🔍 準備插入用戶資料到表格: ${_supabaseService.usersTable}');
+        print('🔍 用戶資料: $newProfile');
+      }
+
       final response = await _supabaseService.users
           .insert(newProfile)
           .select()
@@ -97,6 +127,8 @@ class AuthService {
         print('✅ 新用戶註冊成功: ${response['username']} (${response['email']})');
         print('✅ 用戶ID: ${response['id']}');
         print('✅ 管理員權限: ${response['is_admin']}');
+        print('✅ 插入的表格: ${_supabaseService.usersTable}');
+        print('✅ 完整響應: $response');
       }
 
       return app_user.User.fromJson({

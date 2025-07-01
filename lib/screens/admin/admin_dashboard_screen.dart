@@ -9,6 +9,7 @@ import '../../models/user.dart' as app_user;
 import '../../models/book.dart';
 import '../../router.dart';
 import 'add_book_screen.dart';
+import '../../services/environment_service.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -37,6 +38,14 @@ class AdminDashboardScreen extends ConsumerWidget {
         actions: [
           IconButton(
             onPressed: () {
+              // Test user profile creation
+              ref.read(authNotifierProvider.notifier).createUserProfile();
+            },
+            icon: const Icon(Icons.person_add),
+            tooltip: '測試用戶資料創建',
+          ),
+          IconButton(
+            onPressed: () {
               // Refresh all providers
               ref.invalidate(bookStatisticsProvider);
               ref.invalidate(recentBooksProvider);
@@ -61,6 +70,12 @@ class AdminDashboardScreen extends ConsumerWidget {
               loading: () => const SizedBox.shrink(),
               error: (_, __) => const SizedBox.shrink(),
             ),
+            
+            // Environment Info (for debugging)
+            if (kDebugMode) ...[
+              const SizedBox(height: 16),
+              _EnvironmentInfo(),
+            ],
             
             const SizedBox(height: 24),
             
@@ -954,6 +969,44 @@ class _QuickActionButton extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EnvironmentInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final env = EnvironmentService.instance;
+    final debugInfo = env.getDebugInfo();
+    
+    return Card(
+      color: Colors.yellow.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.bug_report, color: Colors.orange.shade700, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  '環境信息 (調試模式)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade700,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('環境: ${debugInfo['environmentName']}'),
+            Text('用戶表格: ${debugInfo['tables']['users']}'),
+            Text('書籍表格: ${debugInfo['tables']['books']}'),
+            Text('Debug模式: ${debugInfo['kDebugMode']}'),
+          ],
         ),
       ),
     );
