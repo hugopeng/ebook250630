@@ -20,7 +20,15 @@ class BookCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
       child: InkWell(
-        onTap: () => context.push(Routes.bookDetailPath(book.id)),
+        onTap: () {
+          try {
+            // 嘗試使用 GoRouter
+            context.push(Routes.bookDetailPath(book.id));
+          } catch (e) {
+            // 如果 GoRouter 不可用，顯示簡單的書籍詳情對話框
+            _showBookDetailsDialog(context);
+          }
+        },
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -150,6 +158,56 @@ class BookCard extends StatelessWidget {
       ),
     ),
     );
+  }
+
+  void _showBookDetailsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(book.title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('作者: ${book.author}'),
+            const SizedBox(height: 8),
+            Text('格式: ${book.fileTypeDisplay}'),
+            if (book.category != null) ...[
+              const SizedBox(height: 8),
+              Text('分類: ${book.category}'),
+            ],
+            if (book.description != null && book.description!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text('描述: ${book.description}'),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('關閉'),
+          ),
+          if (book.fileType.toLowerCase() == 'url')
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _openUrl(context);
+              },
+              child: const Text('開啟連結'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _openUrl(BuildContext context) async {
+    // 這裡可以加入開啟 URL 的邏輯
+    final url = book.fileUrl ?? book.filePath;
+    if (url.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('開啟: $url')),
+      );
+    }
   }
 
   Widget _DefaultCover() {
