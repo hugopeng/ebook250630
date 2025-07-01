@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/auth_service.dart';
 import '../../providers/reading_history_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../constants/app_constants.dart';
@@ -29,8 +30,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
-    _loadReadingStats();
+    // 延遲載入確保 context 完全初始化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserProfile();
+      _loadReadingStats();
+    });
   }
 
   @override
@@ -42,37 +46,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _loadUserProfile() async {
     try {
-      // 直接從 currentUser 取得基本資訊作為後備
-      final currentUser = ref.read(currentUserProvider);
-      if (currentUser != null) {
-        // 先用 currentUser 的資訊填入
+      // 直接從 AuthService 取得當前用戶
+      final authService = AuthService.instance;
+      final currentUser = authService.currentUser;
+      
+      if (currentUser != null && mounted) {
+        // 先顯示基本認證資訊
         setState(() {
           _usernameController.text = currentUser.userMetadata?['full_name'] ?? 
-                                   currentUser.email?.split('@').first ?? '';
+                                   currentUser.email?.split('@').first ?? 
+                                   'User';
           _emailController.text = currentUser.email ?? '';
           _currentAvatarUrl = currentUser.userMetadata?['avatar_url'];
         });
-      }
 
-      // 然後嘗試載入完整的用戶資料
-      final userProfileAsync = await ref.read(userProfileProvider.future);
-      if (userProfileAsync != null && mounted) {
-        setState(() {
-          _usernameController.text = userProfileAsync.username ?? _usernameController.text;
-          _emailController.text = userProfileAsync.email ?? _emailController.text;
-          _currentAvatarUrl = userProfileAsync.avatarUrl ?? _currentAvatarUrl;
-        });
+        // 然後嘗試載入資料庫中的完整用戶資料
+        try {
+          final userProfile = await authService.getCurrentUserProfile();
+          if (userProfile != null && mounted) {
+            setState(() {
+              _usernameController.text = userProfile.username ?? _usernameController.text;
+              _emailController.text = userProfile.email ?? _emailController.text;
+              _currentAvatarUrl = userProfile.avatarUrl ?? _currentAvatarUrl;
+            });
+          }
+        } catch (profileError) {
+          // 資料庫載入失敗，保留基本認證資訊
+          print('Profile load error: $profileError');
+        }
+      } else {
+        print('No authenticated user found');
       }
     } catch (e) {
-      // 如果載入失敗，至少顯示基本的用戶資訊
-      final currentUser = ref.read(currentUserProvider);
-      if (currentUser != null && mounted) {
-        setState(() {
-          _usernameController.text = currentUser.userMetadata?['full_name'] ?? 
-                                   currentUser.email?.split('@').first ?? '';
-          _emailController.text = currentUser.email ?? '';
-        });
-      }
+      print('Auth error: $e');
     }
   }
 
